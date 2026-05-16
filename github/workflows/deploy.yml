@@ -2,15 +2,11 @@ name: 🚀 النشر التلقائي للنظام الطبي المتكامل 
 
 on:
   push:
-    branches:
-      - main          # أو master حسب الفرع الرئيسي لديك
-      - master
-  workflow_dispatch:  # يسمح بالتشغيل اليدوي من واجهة GitHub
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
-  # ============================================================
-  # 1. نشر الخادم الخلفي (Node.js) على Render
-  # ============================================================
+  # نشر الخادم الخلفي على Render
   deploy-backend:
     name: 📡 نشر الخادم على Render
     runs-on: ubuntu-latest
@@ -18,37 +14,32 @@ jobs:
       - name: تشغيل Webhook النشر في Render
         run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
 
-  # ============================================================
-  # 2. بناء ونشر الواجهة الأمامية (Flutter Web) على Vercel
-  # ============================================================
+  # بناء ونشر الواجهة الأمامية على Vercel
   deploy-frontend:
     name: 🖥️ نشر Flutter Web على Vercel
     runs-on: ubuntu-latest
-    needs: deploy-backend  # يعتمد على نجاح نشر الخادم (اختياري)
+    needs: deploy-backend
     steps:
-      - name: 1️⃣ استنساخ الكود
+      - name: استنساخ الكود
         uses: actions/checkout@v4
 
-      - name: 2️⃣ إعداد بيئة Flutter
+      - name: إعداد Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.0'
-          channel: 'stable'
 
-      - name: 3️⃣ تثبيت الاعتماديات
+      - name: تثبيت التبعيات
         run: flutter pub get
         working-directory: ./frontend_flutter
 
-      - name: 4️⃣ بناء التطبيق للإنتاج (Flutter Web)
-        run: flutter build web --release --base-href=/ --web-renderer html
+      - name: بناء التطبيق (Flutter Web)
+        run: flutter build web --release
         working-directory: ./frontend_flutter
 
-      - name: 5️⃣ تثبيت Vercel CLI
+      - name: تثبيت Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: 6️⃣ نشر الملفات على Vercel
+      - name: النشر على Vercel
         run: |
-          vercel --token ${{ secrets.VERCEL_TOKEN }} \
-                 --prod \
-                 --yes \
-                 --cwd ./frontend_flutter
+          cd frontend_flutter
+          vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes
