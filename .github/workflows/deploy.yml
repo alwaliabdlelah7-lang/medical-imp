@@ -48,7 +48,7 @@ jobs:
 
       - name: 6️⃣ نشر الملفات على Vercel
         run: |
-          vercel --token ${{ secrets.VERCEL_TOKEN }} \
-                 --prod \
-                 --yes \
+          vercel --token ${{ secrets.VERCEL_TOKEN }}
+                 --prod
+                 --yes
                  --cwd ./frontend_flutter
