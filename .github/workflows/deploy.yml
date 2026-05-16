@@ -6,14 +6,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  # 1. نشر الخادم الخلفي على Render
   backend:
     runs-on: ubuntu-latest
     steps:
       - name: تشغيل Render Deploy Hook
         run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
 
-  # 2. نشر الواجهة الأمامية على Vercel
   frontend:
     runs-on: ubuntu-latest
     needs: backend
@@ -27,5 +25,7 @@ jobs:
       - run: flutter build web --release
         working-directory: ./frontend_flutter
       - run: npm install --global vercel@latest
-      - name: النشر على Vercel (أمر في سطر واحد)
-        run: cd frontend_flutter && vercel --token ${{ secrets.VERCEL_TOKEN }} --prod --yes
+      - name: النشر على Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: cd frontend_flutter && vercel --token $VERCEL_TOKEN --prod --yes
